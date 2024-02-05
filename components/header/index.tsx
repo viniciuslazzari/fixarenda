@@ -4,6 +4,10 @@ import { Menu, Group, Center, Burger, Container, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { IconChevronDown } from '@tabler/icons-react';
 import classes from './style.module.css';
+import cx from 'clsx';
+import { ActionIcon, useMantineColorScheme, useComputedColorScheme } from '@mantine/core';
+import { IconSun, IconMoon } from '@tabler/icons-react';
+import { useState } from 'react';
 
 const links = [
   { link: '/', label: 'Início' },
@@ -15,11 +19,14 @@ const links = [
     ],
   },
   { link: '/uteis', label: 'Úteis' },
-  { link: '/sobre', label: 'Sobre' },
+  { link: '/projeto', label: 'Projeto' },
 ];
 
 export default function Header() {
   const [opened, { toggle }] = useDisclosure(false);
+  const [active, setActive] = useState(links[0].link);
+  const { setColorScheme } = useMantineColorScheme();
+  const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
 
   const items = links.map((link) => {
     const menuItems = link.links?.map((item) => (
@@ -63,27 +70,44 @@ export default function Header() {
 
   return (
     <header className={classes.header}>
-      <Container size="md">
+      <Container size="xl">
         <div className={classes.inner}>
-          <Group>
-            <Text
-              style={{ marginRight: 3, fontSize: 30 }}>
-              🤑
-            </Text>
-            <Text
-              size="xl"
-              fw={700}
-            >
-              Fixa Renda
-            </Text>
-          </Group>
+          <a
+            href={"/"}
+            className={classes.linkNew}
+            style={{ padding: 0 }}
+          >
+            <Group>
+              <Text
+                style={{ fontSize: 30 }}>
+                🤑
+              </Text>
+              <Text
+                size="xl"
+                fw={700}
+              >
+                Fixa Renda
+              </Text>
+            </Group>
+          </a>
 
           <Group gap={5} visibleFrom="sm">
             {items}
+            <ActionIcon
+              style={{ marginLeft: 20 }}
+              onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
+              variant="default"
+              size="xl"
+              aria-label="Toggle color scheme"
+            >
+              <IconSun className={cx(classes.icon, classes.light)} stroke={1.5} />
+              <IconMoon className={cx(classes.icon, classes.dark)} stroke={1.5} />
+            </ActionIcon>
           </Group>
-          <Burger opened={opened} onClick={toggle} size="sm" hiddenFrom="sm" />
+
+
         </div>
       </Container>
-    </header>
+    </header >
   );
 }
