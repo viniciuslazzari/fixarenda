@@ -1,0 +1,11 @@
+.footer {
+  margin-top: auto;
+}
+
+.inner {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-top: var(--mantine-spacing-xl);
+  padding-bottom: var(--mantine-spacing-xl);
+}

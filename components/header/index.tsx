@@ -1,13 +1,11 @@
 "use client";
 
-import { Menu, Group, Center, Burger, Container, Text } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { Menu, Group, Center, Container, Text } from '@mantine/core';
 import { IconChevronDown } from '@tabler/icons-react';
 import classes from './style.module.css';
 import cx from 'clsx';
 import { ActionIcon, useMantineColorScheme, useComputedColorScheme } from '@mantine/core';
 import { IconSun, IconMoon } from '@tabler/icons-react';
-import { useState } from 'react';
 
 const links = [
   { link: '/', label: 'Início' },
@@ -23,8 +21,6 @@ const links = [
 ];
 
 export default function Header() {
-  const [opened, { toggle }] = useDisclosure(false);
-  const [active, setActive] = useState(links[0].link);
   const { setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
 
@@ -33,7 +29,7 @@ export default function Header() {
       <Menu.Item key={item.link}>
         <a
           href={item.link}
-          className={classes.link}
+          className={classes.linkNew}
         >{item.label}</a>
       </Menu.Item>
     ));
@@ -85,6 +81,7 @@ export default function Header() {
               <Text
                 size="xl"
                 fw={700}
+                className={classes.title}
               >
                 Fixa Renda
               </Text>
@@ -97,14 +94,13 @@ export default function Header() {
               style={{ marginLeft: 20 }}
               onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
               variant="default"
-              size="xl"
+              size="lg"
               aria-label="Toggle color scheme"
             >
               <IconSun className={cx(classes.icon, classes.light)} stroke={1.5} />
               <IconMoon className={cx(classes.icon, classes.dark)} stroke={1.5} />
             </ActionIcon>
           </Group>
-
 
         </div>
       </Container>
