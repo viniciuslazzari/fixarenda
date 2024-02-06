@@ -78,9 +78,9 @@ export default function Titulos() {
     let i = 0;
 
     for (let date = initialDate; date <= finalDate; date.setDate(date.getDate() + 1)) {
-      const daily = {
-        date: date.toISOString().substring(0, 10)
-      }
+      var daily: { [k: string]: any } = {};
+
+      daily.date = date.toISOString().substring(0, 10);
 
       for (let j = 0; j < titles.length; j++) {
         const gross = (initial * (Math.pow(titles[j].dailyInterest, i))) - initial;
@@ -141,7 +141,7 @@ export default function Titulos() {
       item.ipca = form.values.ipca;
 
       item.dailyInterest = getDailyInterest(item.type, item.tax, item.di, item.ipca);
-      item.daysBetween = Math.round(Math.abs((item.finalDate - item.initialDate) / oneDay));
+      item.daysBetween = Math.round(Math.abs((item.finalDate.valueOf() - item.initialDate.valueOf()) / oneDay));
       item.gross = compoundInterest(item.initial, item.dailyInterest, item.daysBetween)
       item.fiscal = getFiscal(item.investiment, item.daysBetween);
       item.fiscalLoss = (item.fiscal / 100) * item.gross;
