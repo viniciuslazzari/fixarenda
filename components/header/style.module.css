@@ -2,7 +2,7 @@
   height: rem(60px);
   margin-bottom: rem(50px);
   background-color: var(--mantine-color-body);
-  border-bottom: rem(1px) solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-7));
+  border-bottom: rem(1px) solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-8));
 }
 
 .inner {
