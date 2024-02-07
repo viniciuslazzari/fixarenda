@@ -9,7 +9,7 @@ import { Button, Container, Fieldset, Group, NativeSelect, NumberInput, Space, F
 import { DateInput } from "@mantine/dates";
 import { useForm } from "@mantine/form";
 import { compoundInterest, getDailyInterest, getFiscal, returnFormattedTitle } from "../../../services/finance"
-import { IconTrash } from "@tabler/icons-react";
+import { IconPlus, IconTrash } from "@tabler/icons-react";
 
 const MAX_TITLES = 5;
 
@@ -47,11 +47,11 @@ interface Serie {
 }
 
 const colorData = [
-  { color: 'var(--mantine-color-indigo-6)', used: false },
-  { color: 'var(--mantine-color-pink-6)', used: false },
-  { color: 'var(--mantine-color-cyan-6)', used: false },
+  { color: 'var(--mantine-color-yellow-6)', used: false },
   { color: 'var(--mantine-color-lime-6)', used: false },
-  { color: 'var(--mantine-color-yellow-6)', used: false }
+  { color: 'var(--mantine-color-cyan-6)', used: false },
+  { color: 'var(--mantine-color-pink-6)', used: false },
+  { color: 'var(--mantine-color-indigo-6)', used: false }
 ]
 
 export default function Titulos() {
@@ -93,46 +93,48 @@ export default function Titulos() {
   }, [colors])
 
   useEffect(() => {
-    if (titles.length == 0) {
-      return;
-    }
-
-    const initial = titles[0].initial;
-    const initialDate = titles[0].initialDate;
-    const finalDate = titles[0].finalDate;
-
-    const data: any[] = [];
-
-    let i = 0;
-
-    for (let date = new Date(initialDate.getTime()); date <= finalDate; date.setDate(date.getDate() + 1)) {
-      var daily: { [k: string]: any } = {};
-
-      daily.date = date.toISOString().substring(0, 10);
-
-      for (let j = 0; j < titles.length; j++) {
-        const gross = (initial * (Math.pow(titles[j].dailyInterest, i))) - initial;
-        const liquid = gross - gross * (getFiscal(titles[j].investiment, i) / 100);
-        daily[titles[j].plotTitle] = initial + liquid;
-      }
-
-      data.push(daily)
-      i++;
-    }
-
-    var series: Serie[] = [];
+    let series: Serie[] = [];
 
     titles.forEach((item) => {
       series.push({ name: item.plotTitle, color: item.color })
     })
 
     setSeries(series);
-    setData(data);
   }, [titles])
 
   useEffect(() => {
-    console.log(data)
-  }, [data])
+    if (titles.length == 0) return;
+
+    const initial = titles[0].initial;
+    const initialDate = titles[0].initialDate;
+    const daysBetween = titles[0].daysBetween;
+
+    const data: any[] = [];
+
+    let gross: number = 0;
+    let liquid: number = 0;
+    let daily: { [k: string]: any } = {};
+    let date = new Date(initialDate.getTime())
+
+    const yearsInNYers = 365 * 2;
+    const stroke = Math.ceil(daysBetween / yearsInNYers);
+
+    for (let i = 0; i < daysBetween; i += stroke) {
+      daily = {};
+      daily.date = date.toISOString().substring(0, 10).split("-").reverse().join("-").replaceAll('-', '/');
+
+      for (let j = 0; j < titles.length; j++) {
+        gross = (initial * (Math.pow(titles[j].dailyInterest, i))) - initial;
+        liquid = gross - gross * (getFiscal(titles[j].investiment, i) / 100);
+        daily[titles[j].plotTitle] = Math.round((initial + liquid) * 100) / 100;
+      }
+
+      data.push(daily)
+      date.setDate(date.getDate() + stroke)
+    }
+
+    setData(data);
+  }, [titles])
 
   const addTitle = useCallback((values: any) => {
     if (titles.length == MAX_TITLES) {
@@ -169,7 +171,7 @@ export default function Titulos() {
     newTitle.rendiment = (newTitle.gross - newTitle.fiscalLoss) * 100 / newTitle.initial;
 
     setTitles(titles.concat(newTitle))
-  }, [titles])
+  }, [getNextColor, titles])
 
   useEffect(() => {
     const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
@@ -192,7 +194,7 @@ export default function Titulos() {
     })
 
     setTitles(newArray);
-  }, [form.values.initial, , form.values.initialDate, form.values.finalDate, form.values.di, form.values.ipca])
+  }, [form.values.initial, form.values.initialDate, form.values.finalDate, form.values.di, form.values.ipca])
 
   const removeTitle = useCallback((i: number) => {
     const newArray = titles.filter((item, index) => {
@@ -232,7 +234,7 @@ export default function Titulos() {
           <NumberFormatter suffix="%" thousandSeparator="." decimalSeparator="," value={item.rendiment} decimalScale={2} />
         </Table.Td>
         <Table.Td>
-          <ActionIcon onClick={() => removeTitle(i)} size="lg" variant="danger">
+          <ActionIcon onClick={() => removeTitle(i)} size="lg" variant="subtle">
             <IconTrash />
           </ActionIcon>
         </Table.Td>
@@ -341,7 +343,14 @@ export default function Titulos() {
               />
 
               <Group justify="center" mt="xl">
-                <Button type="submit" fullWidth={true} variant="filled">Adicionar</Button>
+                <Button
+                  type="submit"
+                  fullWidth={true}
+                  variant="filled"
+                  leftSection={<IconPlus size={14} />}
+                >
+                  Adicionar
+                </Button>
               </Group>
             </Fieldset>
           </form>
@@ -370,6 +379,7 @@ export default function Titulos() {
             <Fieldset legend="Lista" style={{ width: "100%", height: "100%" }}>
               <Table.ScrollContainer minWidth={800}>
                 <Table verticalSpacing="sm" striped >
+                  <Table.Caption>Adicione até 5 ativos</Table.Caption>
                   <Table.Thead>
                     <Table.Tr>
                       <Table.Th></Table.Th>
