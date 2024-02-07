@@ -10,6 +10,7 @@ import { DateInput } from "@mantine/dates";
 import { useForm } from "@mantine/form";
 import { compoundInterest, getDailyInterest, getFiscal, returnFormattedTitle } from "../../../services/finance"
 import { IconPlus, IconTrash } from "@tabler/icons-react";
+import { getCdi, getIpca } from "@/services/data";
 
 const MAX_TITLES = 5;
 
@@ -60,6 +61,20 @@ export default function Titulos() {
   const [data, setData] = useState<any[]>([]);
   const [colors, setColors] = useState<any[]>(colorData);
   const [series, setSeries] = useState<any[]>([]);
+  const [ipca, setIpca] = useState<number>(0);
+  const [cdi, setCdi] = useState<number>(0);
+
+  useEffect(() => {
+    const init = async () => {
+      const ipca: number = await getIpca(12);
+      const cdi: number = await getCdi(12);
+
+      setIpca(ipca);
+      setCdi(cdi);
+    };
+
+    init();
+  }, []);
 
   const form = useForm({
     initialValues: {
@@ -67,7 +82,7 @@ export default function Titulos() {
       initialDate: new Date(),
       finalDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
       di: 12,
-      ipca: 12.5,
+      ipca: 5,
       investiment: "CDB",
       tax: 110,
       type: "cdi"
@@ -138,7 +153,7 @@ export default function Titulos() {
 
   const addTitle = useCallback((values: any) => {
     if (titles.length == MAX_TITLES) {
-      return;
+      return
     }
 
     var titleExists = false;
@@ -301,6 +316,8 @@ export default function Titulos() {
                 label="Taxa DI (12 meses)"
                 placeholder="Percents"
                 suffix="%"
+                description={'últimos 12 meses: ' + cdi + '%'}
+                inputWrapperOrder={['label', 'error', 'input', 'description']}
                 defaultValue={100}
                 decimalSeparator=","
                 decimalScale={2}
@@ -312,6 +329,8 @@ export default function Titulos() {
                 label="IPCA (12 meses)"
                 placeholder="Percents"
                 suffix="%"
+                description={'últimos 12 meses: ' + ipca + '%'}
+                inputWrapperOrder={['label', 'error', 'input', 'description']}
                 defaultValue={100}
                 decimalSeparator=","
                 decimalScale={2}

@@ -16,7 +16,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <head>
-        <link rel="icon" type="image/x-icon" href="emoji.ico" />
+        <link rel="shortcut icon" type="image/x-icon" href="emoji.ico" />
         <ColorSchemeScript />
       </head>
 
