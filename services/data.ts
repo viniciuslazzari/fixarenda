@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export async function getIpca(months: number) {
-  const IPCA_API_URL = "http://ipeadata.gov.br/api/odata4/ValoresSerie(SERCODIGO='PRECOS12_IPCAG12')";
+  const IPCA_API_URL = "https://ipeadata.gov.br/api/odata4/ValoresSerie(SERCODIGO='PRECOS12_IPCAG12')";
 
   const response: any = await axios.get(IPCA_API_URL)
 
@@ -14,7 +14,7 @@ export async function getIpca(months: number) {
 }
 
 export async function getCdi(months: number) {
-  const CDI_API_URL = "http://ipeadata.gov.br/api/odata4/ValoresSerie(SERCODIGO='BM12_TJCDI12')";
+  const CDI_API_URL = "https://ipeadata.gov.br/api/odata4/ValoresSerie(SERCODIGO='BM12_TJCDI12')";
 
   const response: any = await axios.get(CDI_API_URL)
 
