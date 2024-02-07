@@ -5,11 +5,13 @@ import Footer from "@/components/footer";
 import React, { useCallback, useEffect, useState } from "react";
 import classes from "./style.module.css";
 import { LineChart } from '@mantine/charts';
-import { Button, Container, Fieldset, Group, NativeSelect, NumberInput, Space, Flex, Table, NumberFormatter, ActionIcon } from "@mantine/core";
+import { Button, Container, Fieldset, Group, NativeSelect, NumberInput, Space, Flex, Table, NumberFormatter, ActionIcon, ColorSwatch } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { useForm } from "@mantine/form";
 import { compoundInterest, getDailyInterest, getFiscal, returnFormattedTitle } from "../../../services/finance"
 import { IconTrash } from "@tabler/icons-react";
+
+const MAX_TITLES = 5;
 
 const selectValues = [
   { value: 'cdi', label: 'CDI (%)' },
@@ -27,6 +29,7 @@ interface Title {
   tax: number,
   type: string,
 
+  color: string
   daysBetween: number,
   plotTitle: string,
   formatedTax: string,
@@ -38,10 +41,25 @@ interface Title {
   rendiment: number
 }
 
+interface Serie {
+  name: string,
+  color: string
+}
+
+const colorData = [
+  { color: 'var(--mantine-color-indigo-6)', used: false },
+  { color: 'var(--mantine-color-pink-6)', used: false },
+  { color: 'var(--mantine-color-cyan-6)', used: false },
+  { color: 'var(--mantine-color-lime-6)', used: false },
+  { color: 'var(--mantine-color-yellow-6)', used: false }
+]
+
 export default function Titulos() {
   const [titles, setTitles] = useState<Title[]>([]);
   const [rows, setRows] = useState<any[]>([]);
   const [data, setData] = useState<any[]>([]);
+  const [colors, setColors] = useState<any[]>(colorData);
+  const [series, setSeries] = useState<any[]>([]);
 
   const form = useForm({
     initialValues: {
@@ -54,15 +72,25 @@ export default function Titulos() {
       tax: 110,
       type: "cdi"
     },
-
-    validate: {
-      initial: (value) => (value > 0 ? null : 'Valor inicial deve ser um número positivo'),
-      finalDate: (value, values) => (value > values.initialDate ? null : 'Data final deve ser maior que inicial'),
-      di: (value) => (value < 0 ? 'Taxa DI deve ser um número positivo' : null),
-      ipca: (value) => (value < 0 ? 'IPCA deve ser um número positivo' : null),
-      tax: (value) => (value < 0 ? 'Taxa deve ser um número positivo' : null),
-    },
   });
+
+  const getNextColor = useCallback(() => {
+    var index = 0;
+
+    colors.forEach((item, i) => {
+      if (!item.used) {
+        index = i;
+        return;
+      }
+    });
+
+    const newColors = colors;
+    newColors[index].used = true;
+
+    setColors(newColors);
+
+    return colors[index].color;
+  }, [colors])
 
   useEffect(() => {
     if (titles.length == 0) {
@@ -77,7 +105,7 @@ export default function Titulos() {
 
     let i = 0;
 
-    for (let date = initialDate; date <= finalDate; date.setDate(date.getDate() + 1)) {
+    for (let date = new Date(initialDate.getTime()); date <= finalDate; date.setDate(date.getDate() + 1)) {
       var daily: { [k: string]: any } = {};
 
       daily.date = date.toISOString().substring(0, 10);
@@ -92,12 +120,25 @@ export default function Titulos() {
       i++;
     }
 
-    console.log(data)
+    var series: Serie[] = [];
 
+    titles.forEach((item) => {
+      series.push({ name: item.plotTitle, color: item.color })
+    })
+
+    setSeries(series);
     setData(data);
   }, [titles])
 
+  useEffect(() => {
+    console.log(data)
+  }, [data])
+
   const addTitle = useCallback((values: any) => {
+    if (titles.length == MAX_TITLES) {
+      return;
+    }
+
     var titleExists = false;
 
     titles.forEach(item => {
@@ -115,10 +156,11 @@ export default function Titulos() {
     const newTitle: Title = {
       ...values,
       daysBetween: Math.round(Math.abs((values.finalDate - values.initialDate) / oneDay)),
-      formatedTax: returnFormattedTitle(values.tax, values.type)
+      formatedTax: returnFormattedTitle(values.tax, values.type),
+      color: getNextColor()
     }
 
-    newTitle.plotTitle = newTitle.investiment;
+    newTitle.plotTitle = newTitle.investiment + '(' + newTitle.tax + '%)';
     newTitle.dailyInterest = getDailyInterest(newTitle.type, newTitle.tax, newTitle.di, newTitle.ipca);
     newTitle.gross = compoundInterest(newTitle.initial, newTitle.dailyInterest, newTitle.daysBetween);
     newTitle.fiscal = getFiscal(newTitle.investiment, newTitle.daysBetween);
@@ -157,12 +199,24 @@ export default function Titulos() {
       return index !== i
     })
 
+    const newColors = colors;
+
+    newColors.forEach(item => {
+      if (item.color == titles[i].color) {
+        item.used = false;
+      }
+    })
+
     setTitles(newArray);
-  }, [titles])
+    setColors(newColors)
+  }, [colors, titles])
 
   useEffect(() => {
     const newRows = titles.map((item, i) => (
       <Table.Tr key={i}>
+        <Table.Td>
+          <ColorSwatch color={item.color} />
+        </Table.Td>
         <Table.Td>{item.investiment}</Table.Td>
         <Table.Td>{item.formatedTax}</Table.Td>
         <Table.Td>
@@ -309,9 +363,7 @@ export default function Titulos() {
                 style={{ marginTop: 15, marginLeft: -10 }}
                 tooltipAnimationDuration={200}
                 dataKey="date"
-                series={[
-                  { name: 'CDB', color: 'indigo.6' },
-                ]}
+                series={series}
                 curveType="linear"
               />
             </Fieldset>
@@ -320,6 +372,7 @@ export default function Titulos() {
                 <Table verticalSpacing="sm" striped >
                   <Table.Thead>
                     <Table.Tr>
+                      <Table.Th></Table.Th>
                       <Table.Th>Tipo</Table.Th>
                       <Table.Th>Taxa</Table.Th>
                       <Table.Th>Rendimento Bruto</Table.Th>
