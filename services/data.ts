@@ -20,11 +20,9 @@ export async function getCdi(months: number) {
 
   response.data.pop()
 
-  console.log(response.data)
-
   const raw = response.data
-    .slice(-months + 1)
-    .map((item: any) => 1 + (item.VALVALOR / 100))
+    .slice(-months)
+    .map((item: any) => 1 + (Number(item.valor) / 100))
     .reduce((a: number, b: number) => a * b, 1)
 
   return Math.round(((raw - 1) * 100) * 100) / 100;
