@@ -5,8 +5,8 @@ import Footer from "@/components/footer";
 import React, { useCallback, useEffect, useState } from "react";
 import classes from "./style.module.css";
 import { LineChart } from '@mantine/charts';
-import { Button, Container, Fieldset, Group, NativeSelect, NumberInput, Space, Flex, Table, NumberFormatter, ActionIcon, ColorSwatch } from "@mantine/core";
-import { DateInput } from "@mantine/dates";
+import { Button, Container, Fieldset, Group, NativeSelect, Badge, NumberInput, Space, Flex, Table, NumberFormatter, ActionIcon, ColorSwatch } from "@mantine/core";
+import { DateInput, DateInputProps } from "@mantine/dates";
 import { useForm } from "@mantine/form";
 import { compoundInterest, getDailyInterest, getFiscal, returnFormattedTitle } from "../../../services/finance"
 import { IconPlus, IconTrash } from "@tabler/icons-react";
@@ -48,19 +48,64 @@ interface Serie {
 }
 
 const colorData = [
+  { color: 'var(--mantine-color-grape-6)', used: false },
   { color: 'var(--mantine-color-yellow-6)', used: false },
-  { color: 'var(--mantine-color-lime-6)', used: false },
-  { color: 'var(--mantine-color-cyan-6)', used: false },
   { color: 'var(--mantine-color-pink-6)', used: false },
-  { color: 'var(--mantine-color-indigo-6)', used: false }
+  { color: 'var(--mantine-color-teal-6)', used: true },
+  { color: 'var(--mantine-color-blue-6)', used: true }
+]
+
+const initialTitles: Title[] = [
+  {
+    initial: 1000,
+    initialDate: new Date(),
+    finalDate: new Date(new Date().setFullYear(new Date().getFullYear() + 5)),
+    di: 12,
+    ipca: 5,
+    investiment: "CDB",
+    tax: 120,
+    type: "cdi",
+
+    color: 'var(--mantine-color-blue-6)',
+    daysBetween: 0,
+    plotTitle: '',
+    formatedTax: '',
+    dailyInterest: 0,
+    gross: 0,
+    fiscal: 0,
+    fiscalLoss: 0,
+    liquid: 0,
+    rendiment: 0
+  },
+  {
+    initial: 1000,
+    initialDate: new Date(),
+    finalDate: new Date(new Date().setFullYear(new Date().getFullYear() + 5)),
+    di: 12,
+    ipca: 5,
+    investiment: "LCI/LCA",
+    tax: 10,
+    type: "pre",
+
+    color: 'var(--mantine-color-teal-6)',
+    daysBetween: 0,
+    plotTitle: '',
+    formatedTax: '',
+    dailyInterest: 0,
+    gross: 0,
+    fiscal: 0,
+    fiscalLoss: 0,
+    liquid: 0,
+    rendiment: 0
+  }
 ]
 
 export default function Titulos() {
-  const [titles, setTitles] = useState<Title[]>([]);
+  const [titles, setTitles] = useState<Title[]>(initialTitles);
   const [rows, setRows] = useState<any[]>([]);
   const [data, setData] = useState<any[]>([]);
   const [colors, setColors] = useState<any[]>(colorData);
-  const [series, setSeries] = useState<any[]>([]);
+  const [series, setSeries] = useState<Serie[]>([]);
   const [ipca, setIpca] = useState<number>(0);
   const [cdi, setCdi] = useState<number>(0);
 
@@ -80,7 +125,7 @@ export default function Titulos() {
     initialValues: {
       initial: 1000,
       initialDate: new Date(),
-      finalDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+      finalDate: new Date(new Date().setFullYear(new Date().getFullYear() + 5)),
       di: 12,
       ipca: 5,
       investiment: "CDB",
@@ -93,10 +138,7 @@ export default function Titulos() {
     var index = 0;
 
     colors.forEach((item, i) => {
-      if (!item.used) {
-        index = i;
-        return;
-      }
+      if (!item.used) index = i;
     });
 
     const newColors = colors;
@@ -151,6 +193,15 @@ export default function Titulos() {
     setData(data);
   }, [titles])
 
+  const dateParser: DateInputProps['dateParser'] = (input) => {
+    var parts = input.split("/");
+
+    return new Date(parseInt(parts[2], 10),
+      parseInt(parts[1], 10) - 1,
+      parseInt(parts[0], 10));
+  };
+
+
   const addTitle = useCallback((values: any) => {
     if (titles.length == MAX_TITLES) {
       return
@@ -199,6 +250,8 @@ export default function Titulos() {
       item.di = form.values.di;
       item.ipca = form.values.ipca;
 
+      item.formatedTax = returnFormattedTitle(item.tax, item.type);
+      item.plotTitle = item.investiment + '(' + item.tax + '%)';
       item.dailyInterest = getDailyInterest(item.type, item.tax, item.di, item.ipca);
       item.daysBetween = Math.round(Math.abs((item.finalDate.valueOf() - item.initialDate.valueOf()) / oneDay));
       item.gross = compoundInterest(item.initial, item.dailyInterest, item.daysBetween)
@@ -240,7 +293,9 @@ export default function Titulos() {
           <NumberFormatter prefix="R$ " thousandSeparator="." decimalSeparator="," value={item.gross} decimalScale={2} />
         </Table.Td>
         <Table.Td>
-          <NumberFormatter suffix="%" thousandSeparator="." decimalSeparator="," value={item.fiscal} decimalScale={2} />
+          <Badge variant="outline" color="blue" style={{ width: 70 }}>
+            <NumberFormatter suffix="%" thousandSeparator="." decimalSeparator="," value={item.fiscal} decimalScale={2} />
+          </Badge>
         </Table.Td>
         <Table.Td>
           <NumberFormatter prefix="R$ " thousandSeparator="." decimalSeparator="," value={item.liquid} decimalScale={2} />
@@ -250,7 +305,7 @@ export default function Titulos() {
         </Table.Td>
         <Table.Td>
           <ActionIcon onClick={() => removeTitle(i)} size="lg" variant="subtle">
-            <IconTrash />
+            <IconTrash color="var(--mantine-color-blue-6)" />
           </ActionIcon>
         </Table.Td>
       </Table.Tr >
@@ -301,6 +356,7 @@ export default function Titulos() {
               <DateInput
                 valueFormat="DD/MM/YYYY"
                 label="Data inicial"
+                dateParser={dateParser}
                 placeholder="Date input"
                 {...form.getInputProps('initialDate')}
               />
@@ -308,6 +364,7 @@ export default function Titulos() {
               <DateInput
                 valueFormat="DD/MM/YYYY"
                 label="Data final"
+                dateParser={dateParser}
                 placeholder="Date input"
                 {...form.getInputProps('finalDate')}
               />
@@ -344,7 +401,7 @@ export default function Titulos() {
 
               <NativeSelect
                 label="Tipo"
-                data={['CDB', 'LCI/LCA', 'CRA/CRI']}
+                data={['CDB', 'LCI/LCA']}
                 {...form.getInputProps('investiment')}
               />
 
