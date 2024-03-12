@@ -10,14 +10,11 @@ import { IconSun, IconMoon } from '@tabler/icons-react';
 const links = [
   { link: '/', label: 'Início' },
   {
-    link: '/simuladores',
     label: 'Simuladores',
     links: [
-      { link: '/simuladores/titulos', label: 'Títulos de Renda fixa' },
+      { link: '/titulos', label: 'Títulos de Renda fixa' },
     ],
   },
-  { link: '/uteis', label: 'Úteis' },
-  { link: '/projeto', label: 'Projeto' },
 ];
 
 export default function Header() {

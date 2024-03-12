@@ -5,10 +5,27 @@ import Footer from "@/components/footer";
 import React, { useCallback, useEffect, useState } from "react";
 import classes from "./style.module.css";
 import { LineChart } from '@mantine/charts';
-import { Button, Container, Fieldset, Group, NativeSelect, Badge, NumberInput, Space, Flex, Table, NumberFormatter, ActionIcon, ColorSwatch } from "@mantine/core";
+import {
+  Button,
+  Container,
+  Fieldset,
+  Group,
+  NativeSelect,
+  Badge,
+  NumberInput,
+  Space,
+  Flex,
+  Table,
+  NumberFormatter,
+  ActionIcon,
+  ColorSwatch,
+  Image,
+  Title,
+  Text
+} from "@mantine/core";
 import { DateInput, DateInputProps } from "@mantine/dates";
 import { useForm } from "@mantine/form";
-import { compoundInterest, getDailyInterest, getFiscal, returnFormattedTitle } from "../../../services/finance"
+import { compoundInterest, getDailyInterest, getFiscal, returnFormattedTitle } from "../../services/finance"
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { getCdi, getIpca } from "@/services/data";
 
@@ -200,7 +217,6 @@ export default function Titulos() {
       parseInt(parts[1], 10) - 1,
       parseInt(parts[0], 10));
   };
-
 
   const addTitle = useCallback((values: any) => {
     if (titles.length == MAX_TITLES) {
@@ -429,6 +445,25 @@ export default function Titulos() {
                 </Button>
               </Group>
             </Fieldset>
+
+            <Flex
+              justify="center"
+              align="center"
+              direction="column"
+              mt={20}
+            >
+              <Title>Faça uma doação</Title>
+              <Text c="dimmed" ta="center" mt={20}>
+                Ajude a manter o website funcionando, entre no aplicativo do seu banco e faça um pix para o endereço QR code abaixo.
+              </Text>
+              <Image
+                alt="qrcodepix"
+                radius="md"
+                src="pix.png"
+                mt={30}
+                width="80%"
+              />
+            </Flex>
           </form>
 
           <Flex
